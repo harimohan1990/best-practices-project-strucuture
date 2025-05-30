@@ -619,4 +619,183 @@ MIT (or specify your license)
 Let me know and I’ll generate a diagram based on this architecture.
 ```
 
+Here is a complete **overview of your Catalexis project**, structured for clarity and suitable for team onboarding, documentation, or architecture review:
+
+---
+
+## 🧠 Project Overview – **Catalexis**
+
+Catalexis is a **cloud-native, AI-powered platform** architected using a **Turborepo monorepo** setup. It follows a **modular, scalable microservice architecture**, with infrastructure managed via **AWS CloudFormation/SAM**, deployed through **Azure Pipelines**, and adhering to **DevSecOps best practices**.
+
+---
+
+## 🧱 Architecture Summary
+
+### 📦 Monorepo Layout (via Turborepo)
+
+```
+apps/       → Application frontends & processors (admin, client, telemetry)
+packages/   → Shared service logic (admin, client, share)
+infra/      → CloudFormation + SAM templates
+azure-pipelines/ → CI/CD YAML pipelines
+docs/       → Architecture and diagrams
+```
+
+---
+
+## 🖼️ High-Level System Diagram
+
+```
+Users → CloudFront → S3 (Admin / Client UI)
+                      │
+                      └─► API Gateway → Lambda → services-*
+                                          ├── services-admin
+                                          ├── services-client
+                                          └── services-share
+                      
+Telemetry Events → Kinesis/DynamoDB → telemetry-stream-processor (Lambda)
+```
+
+---
+
+## 🔧 Tech Stack
+
+| Layer           | Technology                                     |
+| --------------- | ---------------------------------------------- |
+| **Frontend**    | React + Vite + TypeScript + Tailwind CSS       |
+| **Backend**     | Node.js (Express/Fastify), OpenAPI, TypeScript |
+| **Infra**       | AWS SAM + CloudFormation (multi-stack setup)   |
+| **Auth**        | Azure AD B2C (OIDC-based via JWTs)             |
+| **Deployment**  | Azure Pipelines + AWS S3 + CloudFront          |
+| **CI/CD**       | Azure DevOps, `Makefile`, `sam deploy`         |
+| **Dev Tools**   | Turborepo, Yarn Workspaces, Prettier, ESLint   |
+| **Testing**     | Jest, setupTests.ts, Turbo test                |
+| **Build Tools** | esbuild, Vite, tsconfig                        |
+
+---
+
+## 📁 Application Modules
+
+### `apps/admin`
+
+* Admin React SPA
+* Custom pages, API calls, store, services
+* Hosted via S3 + CloudFront
+
+### `apps/client`
+
+* Client-facing React app (Vite + Tailwind)
+* Uses `.vite`, `vite.config.ts`, and Tailwind CSS
+* Standalone deployable
+
+### `apps/telemetry-stream-processor`
+
+* Event-based microservice
+* Uses `esbuild.mjs`, built with TypeScript
+* Likely triggers from DynamoDB Streams/Kinesis
+
+---
+
+## 📦 Shared Services
+
+### `packages/services-admin`, `services-client`, `services-share`
+
+* OpenAPI-based typed API layers
+* Shared logic reused across apps
+* Types generated from `api.openapi.json`
+
+---
+
+## 🛠 Infrastructure-as-Code
+
+### Stacks Defined:
+
+| Stack Type  | Stack Name Example              |
+| ----------- | ------------------------------- |
+| Core        | `catalexis-core`                |
+| Bootstrap   | `catalexis-bootstrap`           |
+| API         | `catalexis-backend-api`         |
+| Recommender | `catalexis-backend-recommender` |
+| Telemetry   | `catalexis-backend-telemetry`   |
+| Web         | `catalexis-web`                 |
+| Email       | `catalexis-email`               |
+| VPC         | `catalexis-vpc`                 |
+
+### Tooling
+
+* Makefile automates deployment
+* SAM builds and deploys Lambda stacks
+* `cfn-include` used to preprocess templates
+* `checkov` and `cfn-lint` for security/lint
+
+---
+
+## 🔄 CI/CD
+
+### `azure-pipelines/`
+
+* YAML-based pipelines like:
+
+  * `api-pipeline.yaml`
+  * `core-pipeline.yaml`
+  * `frontend-pipeline.yaml`
+  * `telemetry-pipeline.yaml`
+
+### Automation
+
+* `Makefile` defines targets like:
+
+  * `install`, `build-types`, `plan-deploy-*`, `deploy-*`
+* Supports environment-based bootstrapping (`dev`, `qa`, etc.)
+
+---
+
+## 🔐 Security & DevOps
+
+* Uses IAM roles for ECS tasks and Lambda execution
+* JWT validation via Azure AD B2C endpoints
+* Nameserver overrides (dev/qa) for Route53
+* `.pre-commit-config.yaml` for git hygiene
+* `checkov` for IaC security scanning
+
+---
+
+## ✅ Developer Commands
+
+### Install & Setup
+
+```bash
+make install           # Full setup with yarn, micromamba
+make build-types       # Generate OpenAPI TS types
+```
+
+### Local Dev
+
+```bash
+yarn dev               # Start apps in parallel
+yarn lint              # Lint all packages
+yarn format            # Prettier format
+```
+
+### Deploy
+
+```bash
+make plan-deploy-core-stack
+make deploy-backend-api-stack
+make deploy-frontend-stack
+```
+
+---
+
+## 📎 Suggested Improvements
+
+* Introduce `nx` graph if needed for complex dep tracking
+* Add `README.md` in each app/service
+* Integrate unit test coverage with Azure Pipelines
+* Use `dotenv-expand` if multi-level env interpolation needed
+
+---
+
+Would you like this exported as a `README.md` or a PDF diagram file?
+
 
